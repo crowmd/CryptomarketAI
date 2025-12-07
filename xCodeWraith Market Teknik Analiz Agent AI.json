@@ -1,0 +1,597 @@
+{
+  "meta": {
+    "instanceId": "xcodewraith-teknik-analiz-001"
+  },
+  "name": "📊 xCodeWraith Market Teknik Analiz Agent AI",
+  "nodes": [
+    {
+      "id": "57a8cbd8-bc2f-4600-a077-c2cec70962d8",
+      "name": "Telegram Tetikleyici",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "position": [
+        220,
+        100
+      ],
+      "webhookId": "5c56b0ad-c452-4ada-aba6-ac4da8238aca",
+      "parameters": {
+        "updates": [
+          "message"
+        ]
+      },
+      "typeVersion": 1.1,
+      "credentials": {
+        "telegramApi": {
+          "id": "TELEGRAM_CREDENTIAL_ID",
+          "name": "Telegram Bot API"
+        }
+      }
+    },
+    {
+      "id": "c0794d04-4a75-4e78-93c8-fd6dbecfb87c",
+      "name": "Yapay Zeka Ajanı",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "position": [
+        580,
+        100
+      ],
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.message.text }}",
+        "options": {
+          "systemMessage": "Sen profesyonel bir borsa ve kripto para teknik analistisin. Kullanıcıların sorduğu hisse senetleri veya kripto paralar için TradingView grafiklerini analiz edip, anlaşılır Türkçe teknik analiz raporları hazırlarsın.\n\nKullanıcı bir sembol sorduğunda (örn: BTCUSD, ETHUSD, AAPL), grafik_cek aracını kullanarak grafiği çek ve analiz et.\n\nAnaliz yaparken:\n- 📈 Trend yönünü belirt (yükseliş/düşüş/yatay)\n- 🎯 Destek ve direnç seviyelerini söyle\n- 📊 Momentum göstergelerini yorumla\n- ⏰ Kısa ve orta vadeli görünümü değerlendir\n\nYanıtlarını Türkçe ver ve profesyonel ama anlaşılır bir dil kullan. Emoji kullan."
+        }
+      },
+      "typeVersion": 1.7
+    },
+    {
+      "id": "a7a243d2-80f7-4ace-b758-74770c83be0e",
+      "name": "Sohbet Hafızası",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "position": [
+        640,
+        320
+      ],
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Telegram Tetikleyici').item.json.message.chat.id }}",
+        "contextWindowLength": 10
+      },
+      "typeVersion": 1.3
+    },
+    {
+      "id": "aa4d7ada-5275-4271-8b9f-e0ec32f0c699",
+      "name": "Grafik Çek",
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "position": [
+        860,
+        320
+      ],
+      "parameters": {
+        "name": "grafik_cek",
+        "description": "Belirtilen hisse senedi veya kripto para sembolü için TradingView grafiğini çeker. Sembol parametresi olarak BTCUSD, ETHUSD, AAPL gibi değerler alır.",
+        "workflowId": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        },
+        "specifyInputSchema": true,
+        "schemaType": "fromJson",
+        "jsonSchemaExample": "{\n  \"symbol\": \"BTCUSD\",\n  \"chatId\": \"123456789\"\n}"
+      },
+      "typeVersion": 2
+    },
+    {
+      "id": "c8f7d274-930e-4a23-ac6e-ab8a3b434c70",
+      "name": "Telegram Yanıt Gönder",
+      "type": "n8n-nodes-base.telegram",
+      "position": [
+        980,
+        100
+      ],
+      "webhookId": "a2e618b0-f2a6-4d64-8782-7069e39a59bd",
+      "parameters": {
+        "chatId": "={{ $('Telegram Tetikleyici').item.json.message.chat.id }}",
+        "text": "={{ $json.output }}",
+        "additionalFields": {
+          "parse_mode": "Markdown",
+          "appendAttribution": false
+        }
+      },
+      "typeVersion": 1.2,
+      "credentials": {
+        "telegramApi": {
+          "id": "TELEGRAM_CREDENTIAL_ID",
+          "name": "Telegram Bot API"
+        }
+      }
+    },
+    {
+      "id": "9580a9a5-3153-4fa9-8862-8e2e08506fac",
+      "name": "📊 Borsa Teknik Analizi",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -60,
+        -120
+      ],
+      "parameters": {
+        "color": 4,
+        "width": 520,
+        "height": 320,
+        "content": "## 📊 Borsa Teknik Analizi Botu\n\n**Geliştirici:** xCodeWraith (DEV)\n**Versiyon:** 1.0.0\n**Son Güncelleme:** Aralık 2024\n\n---\n\nBu iş akışı, Telegram üzerinden gelen mesajlara göre hisse senedi veya kripto para teknik analizi yapar.\n\n**Özellikler:**\n- 🤖 GPT-4o Vision ile grafik analizi\n- 📈 TradingView entegrasyonu (Chart-img API)\n- 💬 Etkileşimli sohbet hafızası\n- 🇹🇷 Türkçe analiz raporları\n- 🔄 Dinamik sembol desteği"
+      },
+      "typeVersion": 1
+    },
+    {
+      "id": "4c40f975-b35d-4706-9935-de521db30cd2",
+      "name": "OpenAI GPT-4o",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "position": [
+        420,
+        320
+      ],
+      "parameters": {
+        "model": "gpt-4o",
+        "options": {
+          "temperature": 0.7,
+          "maxTokens": 1024
+        }
+      },
+      "typeVersion": 1.2,
+      "credentials": {
+        "openAiApi": {
+          "id": "OPENAI_CREDENTIAL_ID",
+          "name": "OpenAI API"
+        }
+      }
+    },
+    {
+      "id": "26b9939c-dec4-4142-b884-6cbef56adb26",
+      "name": "⚙️ Grafik Alt İş Akışı",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -60,
+        420
+      ],
+      "parameters": {
+        "color": 3,
+        "width": 520,
+        "height": 420,
+        "content": "## ⚙️ Grafik Çekme Alt İş Akışı\n\n**Amaç:** Ana iş akışından tetiklenerek belirtilen sembol için TradingView grafiği çeker.\n\n---\n\n### 📋 İşlem Adımları:\n\n1. **Sembol Ayrıştırma** - Kullanıcının mesajından hisse/kripto sembolü çıkarılır\n2. **Chart-img API** - TradingView grafiği PNG olarak indirilir\n3. **Base64 Dönüşüm** - Görsel AI için hazırlanır\n4. **GPT-4o Vision** - Grafik analiz edilir\n5. **Telegram** - Sonuç ve görsel gönderilir\n\n---\n\n⚠️ **Not:** Bu alt iş akışı, ana ajan tarafından `grafik_cek` aracı olarak çağrılır.\n\n📌 **Workflow ID'sini** Grafik Çek node'una eklemeyi unutmayın!"
+      },
+      "typeVersion": 1
+    },
+    {
+      "id": "19b572cf-1a26-4e83-bdf6-d005cf2e9ea1",
+      "name": "Alt İş Akışı Tetikleyici",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "position": [
+        40,
+        600
+      ],
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "symbol",
+              "type": "string"
+            },
+            {
+              "name": "chatId",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "typeVersion": 1.1
+    },
+    {
+      "id": "61e766ff-1b07-4bbc-9d48-fe996281fc00",
+      "name": "Sembol Ayrıştır",
+      "type": "n8n-nodes-base.code",
+      "position": [
+        240,
+        600
+      ],
+      "parameters": {
+        "jsCode": "// Kullanıcının mesajından sembol ve chat ID çıkar\nconst inputData = $input.all()[0].json;\n\n// Sembolü büyük harfe çevir ve temizle\nlet symbol = (inputData.symbol || 'BTCUSD').toUpperCase().trim();\n\n// Yaygın format düzeltmeleri\nif (!symbol.includes(':')) {\n  // Kripto sembolleri için BINANCE prefix ekle\n  const cryptoSymbols = ['BTC', 'ETH', 'SOL', 'XRP', 'ADA', 'DOT', 'DOGE', 'AVAX', 'MATIC'];\n  const isCrypto = cryptoSymbols.some(c => symbol.startsWith(c));\n  \n  if (isCrypto) {\n    symbol = `BINANCE:${symbol}`;\n  } else {\n    // Hisse senetleri için NASDAQ prefix ekle\n    symbol = `NASDAQ:${symbol}`;\n  }\n}\n\nreturn {\n  json: {\n    symbol: symbol,\n    chatId: inputData.chatId\n  }\n};"
+      },
+      "typeVersion": 2
+    },
+    {
+      "id": "4fb8a467-b3b1-49c6-9eb9-c24e439fdfc4",
+      "name": "Sembol ve Chat ID",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        440,
+        600
+      ],
+      "parameters": {
+        "mode": "manual",
+        "duplicateItem": false,
+        "assignments": {
+          "assignments": [
+            {
+              "id": "symbol-1",
+              "name": "symbol",
+              "value": "={{ $json.symbol }}",
+              "type": "string"
+            },
+            {
+              "id": "chatId-1",
+              "name": "chatId",
+              "value": "={{ $json.chatId }}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "typeVersion": 3.4
+    },
+    {
+      "id": "562a4d01-5a27-466d-9114-c5edc4205885",
+      "name": "TradingView Grafik API",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        640,
+        600
+      ],
+      "parameters": {
+        "url": "https://api.chart-img.com/v2/tradingview/advanced-chart",
+        "method": "POST",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"symbol\": \"{{ $json.symbol }}\",\n  \"interval\": \"1h\",\n  \"width\": 800,\n  \"height\": 600,\n  \"style\": \"candle\",\n  \"theme\": \"dark\",\n  \"timezone\": \"Europe/Istanbul\",\n  \"format\": \"png\",\n  \"studies\": [\n    {\n      \"name\": \"RSI\",\n      \"inputs\": { \"length\": 14 }\n    },\n    {\n      \"name\": \"MACD\"\n    }\n  ]\n}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "typeVersion": 4.2,
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "CHARTIMG_CREDENTIAL_ID",
+          "name": "Chart-img API"
+        }
+      }
+    },
+    {
+      "id": "d1e2f3a4-b5c6-7890-abcd-123456789abc",
+      "name": "Base64 Dönüştür",
+      "type": "n8n-nodes-base.code",
+      "position": [
+        840,
+        600
+      ],
+      "parameters": {
+        "jsCode": "// Grafik görselini base64 formatına çevir\nconst binaryData = $input.all()[0].binary;\n\nif (!binaryData || !binaryData.data) {\n  throw new Error('Grafik verisi alınamadı!');\n}\n\nconst base64Image = binaryData.data.data;\nconst symbol = $('Sembol ve Chat ID').item.json.symbol;\nconst chatId = $('Sembol ve Chat ID').item.json.chatId;\n\nreturn {\n  json: {\n    base64Image: base64Image,\n    symbol: symbol,\n    chatId: chatId,\n    mimeType: binaryData.data.mimeType || 'image/png'\n  },\n  binary: binaryData\n};"
+      },
+      "typeVersion": 2
+    },
+    {
+      "id": "6f506393-e225-45ec-a49f-eb473585e877",
+      "name": "Grafik Analizi",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "position": [
+        1040,
+        600
+      ],
+      "parameters": {
+        "resource": "chat",
+        "model": "gpt-4o",
+        "prompt": {
+          "messages": [
+            {
+              "role": "system",
+              "content": "Sen profesyonel bir teknik analistsin. TradingView grafiklerini analiz edip Türkçe rapor hazırlarsın."
+            },
+            {
+              "role": "user",
+              "content": "={{ 'Bu ' + $json.symbol + ' grafiğini analiz et:\\n\\n1. **Trend Analizi:** Yükseliş/düşüş/yatay?\\n2. **Destek/Direnç:** Kritik seviyeler neler?\\n3. **RSI & MACD:** Momentum nasıl?\\n4. **Görünüm:** Kısa vadeli beklenti?\\n\\nKısa ve öz analiz yap, emoji kullan.' }}"
+            }
+          ]
+        },
+        "options": {
+          "temperature": 0.7,
+          "maxTokens": 500
+        }
+      },
+      "typeVersion": 1.8,
+      "credentials": {
+        "openAiApi": {
+          "id": "OPENAI_CREDENTIAL_ID",
+          "name": "OpenAI API"
+        }
+      }
+    },
+    {
+      "id": "655d3289-55c6-49e3-8e1d-c7883ce57415",
+      "name": "Grafik Gönder",
+      "type": "n8n-nodes-base.telegram",
+      "position": [
+        1240,
+        600
+      ],
+      "webhookId": "31b77856-a976-4e63-9e6b-aeada64aeaab",
+      "parameters": {
+        "chatId": "={{ $('Sembol ve Chat ID').item.json.chatId }}",
+        "resource": "message",
+        "operation": "sendPhoto",
+        "binaryPropertyName": "data",
+        "additionalFields": {
+          "caption": "📊 **{{ $('Sembol ve Chat ID').item.json.symbol }}** Teknik Analiz\n\n{{ $json.message.content }}",
+          "parse_mode": "Markdown",
+          "appendAttribution": false
+        }
+      },
+      "typeVersion": 1.2,
+      "credentials": {
+        "telegramApi": {
+          "id": "TELEGRAM_CREDENTIAL_ID",
+          "name": "Telegram Bot API"
+        }
+      }
+    },
+    {
+      "id": "1188a40d-16a2-4536-8d60-1be4eaccd353",
+      "name": "Yanıt Hazırla",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        1440,
+        600
+      ],
+      "parameters": {
+        "mode": "manual",
+        "duplicateItem": false,
+        "assignments": {
+          "assignments": [
+            {
+              "id": "response-1",
+              "name": "response",
+              "value": "={{ $('Grafik Analizi').item.json.message.content }}",
+              "type": "string"
+            },
+            {
+              "id": "success-1",
+              "name": "success",
+              "value": true,
+              "type": "boolean"
+            }
+          ]
+        }
+      },
+      "typeVersion": 3.4
+    },
+    {
+      "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+      "name": "📖 Kullanım Kılavuzu",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        480,
+        -120
+      ],
+      "parameters": {
+        "color": 2,
+        "width": 400,
+        "height": 320,
+        "content": "## 📖 Kullanım Kılavuzu\n\n### 🚀 Başlangıç:\n1. Telegram botunuzu oluşturun (@BotFather)\n2. OpenAI API anahtarınızı ekleyin\n3. Chart-img API anahtarı alın (ücretsiz tier var)\n\n### 💬 Örnek Komutlar:\n```\nBTCUSD analiz et\nETH grafiğini çek\nAAPL teknik analizi yap\nSOL/USD nasıl görünüyor?\n```\n\n### ⚙️ Desteklenen Semboller:\n- 🪙 **Kripto:** BTCUSD, ETHUSD, SOLUSD, XRPUSD...\n- 📈 **Hisse:** AAPL, GOOGL, TSLA, NVDA...\n- 💱 **Forex:** EURUSD, GBPUSD, USDJPY..."
+      },
+      "typeVersion": 1
+    },
+    {
+      "id": "b2c3d4e5-f6a7-8901-bcde-f23456789012",
+      "name": "🔧 Gerekli Ayarlar",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        900,
+        -120
+      ],
+      "parameters": {
+        "color": 6,
+        "width": 400,
+        "height": 320,
+        "content": "## 🔧 Gerekli Kimlik Bilgileri\n\n### 1️⃣ Telegram Bot API\n- @BotFather'dan bot oluşturun\n- Token'ı n8n credentials'a ekleyin\n- Bot'u gruba eklemeden önce test edin\n\n### 2️⃣ OpenAI API\n- [platform.openai.com](https://platform.openai.com) adresinden alın\n- GPT-4o erişimi gerekli (ücretli)\n\n### 3️⃣ Chart-img API\n- [chart-img.com](https://chart-img.com) adresinden alın\n- Ücretsiz tier: 100 istek/ay\n- Bearer token olarak ekleyin\n\n---\n\n💰 **Tahmini Maliyet:** ~$0.01-0.05/analiz"
+      },
+      "typeVersion": 1
+    },
+    {
+      "id": "c3d4e5f6-a7b8-9012-cdef-345678901234",
+      "name": "⚠️ Yasal Uyarı",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1320,
+        -120
+      ],
+      "parameters": {
+        "color": 7,
+        "width": 360,
+        "height": 320,
+        "content": "## ⚠️ Yasal Uyarı\n\n> **Bu iş akışı yalnızca eğitim ve kişisel kullanım amaçlıdır.**\n\n🚫 Bu araç **FİNANSAL TAVSİYE** niteliği taşımaz.\n\n🚫 Yatırım kararlarınızı bu analizlere dayandırmayın.\n\n🚫 Her türlü kayıp kullanıcının sorumluluğundadır.\n\n---\n\n👨‍💻 **Geliştirici:** xCodeWraith\n📧 **İletişim:** GitHub Issues\n📜 **Lisans:** MIT License\n\n---\n\n*Geliştirici, bu aracın kullanımından doğabilecek zararlardan sorumlu değildir.*"
+      },
+      "typeVersion": 1
+    },
+    {
+      "id": "e4f5a6b7-c8d9-0123-efab-567890123456",
+      "name": "🔄 Workflow Akışı",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        480,
+        220
+      ],
+      "parameters": {
+        "color": 5,
+        "width": 480,
+        "height": 160,
+        "content": "## 🔄 Ana İş Akışı\n\n```\nTelegram Mesajı → AI Ajanı → [Grafik Çek Tool] → Yanıt Gönder\n                    ↑\n            GPT-4o + Hafıza\n```\n\n⚡ AI Ajanı, kullanıcı sembol sorduğunda otomatik olarak `grafik_cek` aracını çağırır."
+      },
+      "typeVersion": 1
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Sembol Ayrıştır": {
+      "main": [
+        [
+          {
+            "node": "Sembol ve Chat ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Yapay Zeka Ajanı": {
+      "main": [
+        [
+          {
+            "node": "Telegram Yanıt Gönder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Base64 Dönüştür": {
+      "main": [
+        [
+          {
+            "node": "Grafik Analizi",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Grafik Analizi": {
+      "main": [
+        [
+          {
+            "node": "Grafik Gönder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Grafik Çek": {
+      "ai_tool": [
+        [
+          {
+            "node": "Yapay Zeka Ajanı",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Grafik Gönder": {
+      "main": [
+        [
+          {
+            "node": "Yanıt Hazırla",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "TradingView Grafik API": {
+      "main": [
+        [
+          {
+            "node": "Base64 Dönüştür",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Tetikleyici": {
+      "main": [
+        [
+          {
+            "node": "Yapay Zeka Ajanı",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI GPT-4o": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Yapay Zeka Ajanı",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sembol ve Chat ID": {
+      "main": [
+        [
+          {
+            "node": "TradingView Grafik API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sohbet Hafızası": {
+      "ai_memory": [
+        [
+          {
+            "node": "Yapay Zeka Ajanı",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Alt İş Akışı Tetikleyici": {
+      "main": [
+        [
+          {
+            "node": "Sembol Ayrıştır",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "id": "1",
+      "name": "Kripto"
+    },
+    {
+      "id": "2",
+      "name": "Teknik Analiz"
+    },
+    {
+      "id": "3",
+      "name": "Telegram"
+    },
+    {
+      "id": "4",
+      "name": "xCodeWraith"
+    },
+    {
+      "id": "5",
+      "name": "GPT-4o"
+    }
+  ]
+}
