@@ -277,7 +277,7 @@ Her node'a gidip doğru credential'ı seç:
 
 ## 📜 Lisans
 
-MIT License - Dilediğince kullan, isteyen alıp kendi sistemini kursun.
+MIT License - Dilediğince kullan, isteyen alıp kendi sistemini kursun. Bu workflowun yaratıcısı ondan habersiz paylaşılmasını ve herhangi bir yerde satışının olmasını yasaklamıştır, bu tarz bir eylem için yaratıcı ile iletişime geçiniz.
 
 ---
 
